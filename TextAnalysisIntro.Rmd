@@ -41,7 +41,9 @@ library("tidyr")
 
 Welcome to this beginner workshop on quantitative textual analysis! This workshop will cover some of the basic forms of analysis we can carry out on a single document (in this case, a book), but it will also serve as a basic introduction to R for those totally unfamiliar.[^1]
 
-First of all, if you'd like, [go to the Gutenberg Project website](http://www.gutenberg.org/) and find a text to work with - any text, literary or nonliterary, but it should be a text you're already familiar with. If the choice is too much pressure, feel free to use one of my samples. The default for this workshop is George Washington Cable's important 1879 American novel *The Grandissimes*, but I've included a number of other texts to choose from.
+First of all, run the section of setup code above by clicking the green arrow in the upper right of the grey box. The code for this workshop relies on a number of different packages in order to help demonstrate a variety of different approaches to textual analysis in R. Packages are a common aspect of coding in R: they contain user-written functions designed to make analysis faster and easier.
+
+If you'd like, [go to the Gutenberg Project website](http://www.gutenberg.org/) and find a text to work with - any text, literary or nonliterary, but it should be a text you're already familiar with. If the choice is too much pressure, feel free to use one of my samples. The default for this workshop is George Washington Cable's important 1879 American novel *The Grandissimes*, but I've included a number of other texts to choose from.
 
 # Getting Started in RStudio
 
@@ -239,7 +241,7 @@ This indicates that there are a few things that should be added to our stoplist.
 stoplist <- c(stoplist, "a", "s")
 ```
 
-There are other ways to measure context and relationships between words as well, most notably topic modeling tools like "mallet" or "wordVectors". These, however, become most useful when working with a corpus of texts, even if only a small one.
+There are other ways to measure context and relationships between words as well, most notably topic modeling tools like [`mallet`](https://cran.r-project.org/web/packages/mallet/mallet.pdf) or [`wordVectors`](https://github.com/bmschmidt/wordVectors/blob/master/vignettes/introduction.Rmd). These, however, become most useful when working with a corpus of texts, even if only a small one.
 
 # Sentiment Analysis
 
