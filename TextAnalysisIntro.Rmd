@@ -53,8 +53,8 @@ Programming languages like R distinguish between several data types; these inclu
 
 First, we need to read in our data into our environment. We'll do that by using a function, `readLines`, to read in a .txt file and assign that data (using `<-`) to an object with whatever name we'd like ("gutenberg_file").
 
-```{r}
-gutenberg_file <- readLines("grandissimes.txt", encoding = "UTF-8")
+```{r, warning=FALSE}
+gutenberg_file <- readLines("sample_texts/grandissimes.txt", encoding = "UTF-8")
 ```
 
 Type "gutenberg_file" into the console and click enter in order to see what this object actually looks like. You'll note we have a series of lines, each enclosed in quotation marks and each with a number on the left. Each of these lines is called a character string; together, they form what we call a vector.
@@ -280,7 +280,7 @@ fear_df[1:10,] %>%
 Now, this chart takes as its basis the entire text. But one might rather want to know how the sentiment of one part of a text or compare how it shifts from one part of the text to the next. There are several metrics by which one could do this: using the gutenberg_text object (it's still in our environment!) we could break the text into groups of words by chapter or even by paragraph.
 
 We'll begin by transforming our word_vector into a dataframe again, with two variables: one for the words and one for their place in the sequence of all words. This time, we'll use the "bing" lexicon to just track whether a word is positive or negative.
-```{r, warnings=FALSE}
+```{r, warning=FALSE}
 word_df <- data.frame(word=word_vector, word_position=seq_along(word_vector))
 
 text_positivity <- inner_join(word_df, get_sentiments("bing"), by="word")
