@@ -41,18 +41,18 @@ library("tidyr")
 
 Welcome to this beginner workshop on quantitative textual analysis! This workshop will cover some of the basic forms of analysis we can carry out on a single document (in this case, a book), but it will also serve as a basic introduction to R for those totally unfamiliar.[^1]
 
-First of all, [go to the Gutenberg Project website](http://www.gutenberg.org/) and find a text to work with - any text, literary or nonliterary, but it should be a text you're already familiar with. If the choice is too much pressure, feel free to use one of my samples.
+First of all, if you'd like, [go to the Gutenberg Project website](http://www.gutenberg.org/) and find a text to work with - any text, literary or nonliterary, but it should be a text you're already familiar with. If the choice is too much pressure, feel free to use one of my samples. The default for this workshop is George Washington Cable's important 1879 American novel *The Grandissimes*, but I've included a number of other texts to choose from.
 
 # Getting Started in RStudio
 
-Don't panic: you're in RStudio Cloud, an environment that makes coding in R more transparent. Let's take a brief tour. Your window is divided into four segments. In the upper right, you'll see the environment: this displays all the objects you currently have loaded into memory. In the upper left, you'll see the script editor: this is the place to work on code that you're currently writing (or borrowing from elsewhere!). To run code in code chunks (the grey areas that start with "```{r}"), you can either press Ctrl+Enter to run single lines or click the green arrow to run the entire chunk (Ctrl+Shift+Enter will do the same). In the lower left, you'll see the console: this is where code actually executes and where the output prints. In the lower left, you'll see a few different things. The "Files" tab shows whatever files you've uploaded to the RStudio Cloud; if you run any plots, they'll show up in the "Plots" tab; you can also get help in the "Help" tab.
+Don't panic: you're in RStudio Cloud, an environment that makes coding in R more transparent. Let's take a brief tour. Your window is divided into four segments. In the upper right, you'll see the environment: this displays all the objects you currently have loaded into memory. In the upper left, you'll see the script editor: this is the place to work on code that you're currently writing (or borrowing from elsewhere!). To run code in code chunks (the grey areas that start with "```{r}"), you can either press Ctrl+Enter to run single lines or click the green arrow to run the entire chunk (Ctrl+Shift+Enter will do the same). In the lower left, you'll see the console: this is where code actually executes and where the output prints. In the lower right, you'll see a few different things. The "Files" tab shows whatever files you've uploaded to the RStudio Cloud; if you run any plots, they'll show up in the "Plots" tab; you can also get help in the "Help" tab.
 
 Programming languages like R distinguish between several data types; these include numeric (e.g. 1, 2, 3), boolean (e.g. TRUE, FALSE), and character (e.g. "n", "s", "v"). Quantitative textual analysis is primarily concerned with characters, but we'll sometimes rely on the others in the process of working with characters. A string of characters (e.g. "string", "characters") are called a character string. 
 
 First, we need to read in our data into our environment. We'll do that by using a function, `readLines`, to read in a .txt file and assign that data (using `<-`) to an object with whatever name we'd like ("gutenberg_file").
 
 ```{r}
-gutenberg_file <- readLines("grandissimes.txt")
+gutenberg_file <- readLines("grandissimes.txt", encoding = "UTF-8")
 ```
 
 Type "gutenberg_file" into the console and click enter in order to see what this object actually looks like. You'll note we have a series of lines, each enclosed in quotation marks and each with a number on the left. Each of these lines is called a character string; together, they form what we call a vector.
@@ -62,30 +62,43 @@ If you scroll up in the console, you'll see that the first twenty or so lines ar
 # Preparing the Text
 
 Find what you want to be the first line included in the text, and enter that where I've written "CHAPTER I". Then edit the next line of code so that it reflects the text you're working with. All Project Gutenberg texts end with a formula line that reads "End of Project Gutenberg's [title], by [author]", so you'll just want to double check to make sure you enter the title and author as they appear in the file.
+
+The `which` function will allow us to identify which elements of a vector exactly match whichever character string we're looking for. It returns the number of the position of the desired character string in the vector. For example:
 ```{r}
-start <- which(gutenberg_file == "CHAPTER I")
-end <- which(gutenberg_file == 
+which(gutenberg_file=="CHAPTER I")
+```
+
+We'll save this and the posiion of the desired end line as objects into memory.
+```{r}
+start <- which(gutenberg_file=="CHAPTER I")
+end <- which(gutenberg_file==
               "End of Project Gutenberg's The Grandissimes, by George Washington Cable")
+```
+
+And now we'll *index* the gutenberg_file vector, using brackets `[ ]` so that we're only selecting the elements from the start position through (`:`) the end position minus one (since we don't want the "End of" line itself). Indexing is one of the most useful and versitile tools in R, so you'll encounter it frequently today: it simply designates a subset of whichever object you're working with. 
+```{r}
 text <- gutenberg_file[start:(end-1)]
 ```
 
-The lines format was useful for making those initial trims, but it's not really a subdivision that we're interested in (unlike, say, individual words or chapters). So let's paste all of those lines of characters together to make one big character string, separating each with a blank.
+Give indexing a try: in the console, write the short line of code to return the first ten elements of our new text vector.
+
+As you can see, there's a bit more tidying to do. The lines format was useful for making those initial trims, but it's not really a subdivision that we're interested in (unlike, say, individual words or chapters). So let's paste all of those lines of characters together to make one big character string, separating each with a blank.
 ```{r}
 text <- paste(text, collapse=" ")
 ```
 
 Given that many searches are case-sensitive by default, it's easier to work with text when it's all in lower case.
 ```{r}
-text_lower <- tolower(text)
+text <- tolower(text)
 ```
 
 Next we'll split that one big character string into a big vector in which each word is its own separate element. By splitting our string (with `strsplit`) into its smallest units we'll be able to maximize our options for analysis.
 ```{r}
-words <- strsplit(text_lower, "\\W+")
+words <- strsplit(lower, "\\W+")
 words <- unlist(words)
 ```
 
-If you click on the blue arrow by the words object in the environment, you'll notice that some of the elements it contains are just the null character "". These are what's left of punctuation and line breaks; they can be removed by subsetting or *indexing* only `which` elements of words are not equal (`!=`) to "".
+If you click on the blue arrow by the words object in the environment, you'll notice that some of the elements it contains are just the null character `""`. These are what's left of punctuation and line breaks; they can be removed by subsetting or indexing only `which` elements of words are not equal (`!=`) to `""`.
 ```{r}
 word_vector <- words[which(words!="")]
 ```
@@ -99,7 +112,7 @@ How many unique words are there in *The Grandissimes*? In other words, what is t
 length(unique(word_vector))
 ```
 
-How many times is each word in the text used? The handy `table` function will automatically tally this up. Since there are a lot of words, we'll index only elements 1 through (`:`) 20 of the resulting table.
+How many times is each word in the text used? The handy `table` function will automatically tally this up. Since there are a lot of words, we'll index only the first twenty elements of the resulting table.
 ```{r}
 table(word_vector)[1:20]
 ```
@@ -266,15 +279,15 @@ Now, this chart takes as its basis the entire text. But one might rather want to
 
 We'll begin by transforming our word_vector into a dataframe again, with two variables: one for the words and one for their place in the sequence of all words. This time, we'll use the "bing" lexicon to just track whether a word is positive or negative.
 ```{r, warnings=FALSE}
-word_df <- data.frame(word=word_vector, place=seq_along(word_vector))
+word_df <- data.frame(word=word_vector, word_position=seq_along(word_vector))
 
 text_positivity <- inner_join(word_df, get_sentiments("bing"), by="word")
 ```
 
-This next bit of code relies on a number of new functions. First we `count` the number of observations of each sentiment in each group of 1000 words in our original word_vector, which reorganizes the data frame so that each observation is now one group rather than one word. Then we `spread` . Finally, we `mutate` to add a new 
+This next bit of code relies on a number of new functions, so don't worry if it just seems hazy. First we `count` the number of observations of each sentiment in each group of 1000 words in our original word_vector, which reorganizes the data frame so that each observation is now one group rather than one word. Then we `spread` . Finally, we `mutate` to add a new 
 ```{r}
 sentiment_plot <- text_positivity %>%
-  count(index = place %/% 1000, sentiment) %>%
+  count(index = word_position %/% 1000, sentiment) %>%
   spread(sentiment, n, fill = 0) %>%
   mutate(sentiment = positive - negative)
 
@@ -290,7 +303,7 @@ Now this gives us a lot to chew over. In the case of *The Grandissimes*, we have
 
 Of course, sentiment analysis is only as useful as the lexicon being used, and a lexicon that may be particularly useful for one text might not be for another text. To check this, we might want to do a bit of spot checking to see that sentiments are being assigned in a way that we deem appropriate. We might also want to compare different sentiment lexicons: for example, we could make a second version of this same graph that instead uses the "afinn" lexicon and compare the results. This kind of self-review is essential when working with quantitative methods.
 
-One good moral deserves another, and that is this. Quantitative textual analysis isn't going to make the sky open up. It does, however, provide additional means for articulating aspects of texts that can often be more precise or succinct than qualitative analysis, and it can direct our attention to further areas for qualitative analysis that we might've overlooked.
+There's a bigger moral here too: that quantitative analysis should always be in dialogue with other qualitative forms of analysis. The benefits of quantitative analysis lie in its ability to articulate aspects of texts that can often be more precise or succinct than qualitative analysis and to direct our attention to further areas for qualitative analysis that we might've overlooked.
 
 Finally, we would really appreciate it if you took a minute to [fill out our brief feedback survey](https://rutgers.ca1.qualtrics.com/jfe/form/SV_a3itiZN18dY3fc9).
 
