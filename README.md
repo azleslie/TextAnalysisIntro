@@ -8,4 +8,4 @@ This workshop was originally offered during the Fall 2018 semester at Rutgers Un
 
 **TextAnalysisIntro.pdf** This .html file is best for viewing the workshop or following along outside of an R or RStudio environment; it contains all code as well as sample outputs and figures.
 
-**grandissimes.txt** A sample text for participants (the 1879 novel *The Grandissimes* by George Washington Cable), used in .pdf file.
+**sample_texts/** A directory containing sample texts for participants. **grandissimes.txt**, the 1879 novel *The Grandissimes* by George Washington Cable, is the default used for demonstration in the .pdf and .Rmd files.
