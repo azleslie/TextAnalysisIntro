@@ -132,7 +132,7 @@ top_words <- word_vector[which(nchar(word_vector) > 3)]
 sort(table(top_words), decreasing=TRUE)[1:20]
 ```
 
-That helped, but there's still a fair bit of static here. This time, we'll use a stop list - a list of common words that we don't want gumming up the works - to cull a bit more. Then we'll index to exclude (with the negative operator `-`) all of the elements of top_words that are also elements `%in%` the stoplist.
+That helped, but there's still a fair bit of static here. This time, we'll use a stop list - a list of common words that we don't want gumming up the works - to cull a bit more (there are plenty of stoplists lying about online; I've pulled mine from the Princeton CS website). Then we'll index to exclude (with the negative operator `-`) all of the elements of top_words that are also elements `%in%` the stoplist.
 ```{r}
 stoplist <- readLines("https://algs4.cs.princeton.edu/35applications/stopwords.txt")
 top_words <- top_words[-which(top_words %in% stoplist)]
@@ -144,7 +144,7 @@ Much nicer: this has eliminated some real words, yes, but it has also made the r
 
 This information can be visualized as a word cloud as well.
 
-To do so, we'll need to save top_words as a data.frame instead. A data frame is another data type in R: it is basically the equivalent of a spreadsheet in that it contains observations (or rows) and variables (or columns). Next, we'll use the piping operator `%>%`, which pipes the output of one function directly into the next, making our code clearer and more concise. Think of it like pouring our data through a series of sifters with increasingly smaller withes. This allows us to take our new word data frame, `group_by` word and `summarize` the number of observations in each group as a new variable called total.
+To do so, we'll need to save top_words as a data.frame instead. A data frame is another data type in R: it is basically the equivalent of a spreadsheet in that it contains observations (or rows) and variables (or columns). Next, we'll use the piping operator `%>%`, which pipes the output of one function directly into the next, making our code clearer and more concise. Think of it like pouring our data through a series of sifters with increasingly smaller withes. This allows us to take our new word data frame, `group_by` word and `summarize` the number of observations in each group as a new variable called total. Finally, we'll generate the wordcloud itself.
 ```{r}
 word_df <- data.frame(word=top_words)
 
@@ -186,25 +186,33 @@ Depending on the focus of analysis, one may wish to compare some of these attrib
 
 Let's focus on a single important word. You may choose an important character, concept, descriptor, one of the most frequently used words that stood out, anything. To demonstrate, I'll use the second half of the name Bras Coupé, an enslaved person in *The Grandissimes* whose curse on Louisiana's indigo plantations disrupts the novel. Finding the instances of a desired word is easy enough: just a simple `which` function.
 ```{r}
-word <- which(word_vector=="coupé")
+which(word_vector=="coupé")
 ```
 
-How about a basic calculation: what percentage of the total number of words (i.e., the `length` of the word_vector) are the word just searched for? To do this we'll nest a few functions, so keep track of the parentheses. First we'll divide to come up with the proportion, then multiply by 100 to get a percentage. To make things look nice, we'll `round` that number to 4 digits and `paste` a percentage sign after, clarifying that we don't want anything ("") `sep`arating what's being pasted together.
+This returns a vector of numbers. What does this tell us? The position of each instance of our key word in the word_vector vector. This means that if we turn around and index those positions back into our word_vector, R will return a vector in which every element is our key word.
+```{r}
+word <- which(word_vector=="coupé")
+
+word_vector[word]
+```
+
+How about a basic calculation: what percentage of the total number of words (i.e., the `length` of the word_vector) are the word just searched for? To do this we'll nest a few functions, so keep track of the parentheses. First we'll divide to come up with the proportion, then multiply by 100 to get a percentage. To make things look nice, we'll `round` that number to 4 digits and `paste` a percentage sign after, clarifying that we don't want anything (`""`) `sep`arating what's being pasted together.
 ```{r}
 paste(round(length(word) / length(word_vector) * 100, 4), "%", sep="")
 ```
 
 Of course, words aren't used evenly throughout a text: they often follow patterns of use, and these patterns might be of importance. In a fictional text, we might call this narrative time, that is, the time it takes the narrative to unfold, as opposed to the time in which the plot unfolds. There are several potential ways we might measure narrative time - for example, our unit of measurement might be chapters. Given that we already know the total number of words and the position of any given word within that total, we'll use words as our unit of measurement instead.
 
-If you're using a different text, be sure to change the title by editing the `ggtitle` line of code before running.
+First we generate an x axis that is as long as there are words in our text. Then we make a y axis of the same length, where each value is 0 -- except for the positions of our key word, which we'll assign a value of 1. Finally, we save this as a data frame so that the two vectors match up with each other as two columns. That's all the prep necessary; the next lines of code generate the graph itself. They're pretty intuitive; see if you can read them yourself.
+
+(If you're using a different text, be sure to change the title by editing the `ggtitle` line of code before running.)
 ```{r}
 xaxis <- 1:length(word_vector)
 yaxis <- rep(0,length(xaxis))
 yaxis[word] <- 1
 word_plot <- data.frame(xaxis, yaxis)
 
-word_plot %>%
-  ggplot(aes(x=xaxis, y=yaxis)) +
+ggplot(data=word_plot, aes(x=xaxis, y=yaxis)) +
   geom_line() +
   labs(x="Narrative Time (in words)") +
   theme(axis.title.y=element_blank(),
@@ -213,30 +221,43 @@ word_plot %>%
   ggtitle("Mentions of Bras Coupe in Cable's The Grandissimes")
 ```
 
-Feel free to try out a few other words if you'd like; all it takes is re-defining the word object. See if you can recall how to do that -- and if not, just scroll up two code blocks.
+Feel free to try out a few other words if you'd like; all it takes is re-defining the word object. See if you can recall how to do that on your own -- and if not, just scroll up two code blocks.
 
-It's often useful to know not just where a particular word occurs in the text but also what words appear immediately alongside it. We call these collocate words or collocates. In order to do this, we'll have to use a `for` loop. 
+It's often useful to know not just where a particular word occurs in the text but also what words appear immediately alongside it. We call these collocate words or collocates. 
+
+Let's take this step by step. How would we find the five collocates on either side of just the first instance of a key word? Since our word object in memory is simply a vector of positions, this is simply a matter subtraction and addition.
 ```{r}
 word <- which(word_vector=="eyes")
 
-collocates <- list()
-for (j in seq_along(word)) {
-  single_use <- word_vector[(word[j]-5):(word[j]+5)]
-  collocates[[j]] <- single_use
-}
+word_vector[(word[1]-5):(word[1]+5)]
+```
 
+This returns a vector of the ten words surrounding our key word (plus our key word). Well enough! But we want to do this once for every element in word. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - word - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(word))`. The code being looped gets put inside curly brackets (`{ }`).
+
+Instead of `word[1]`, we index the loop variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop variable once again.
+```{r}
+collocates <- list()
+
+for (j in seq_along(word)) {
+  collocates[[j]] <- word_vector[(word[j]-5):(word[j]+5)]
+}
+```
+
+Once the loop has finished, type "collocates" into the console; this is what a list looks like. There are plenty of reasons to keep data in this format, but to find the most frequently occurring collocates it is necessary to unlist them.
+```{r}
 all_collocates <- unlist(collocates)
+
 sort(table(all_collocates), decreasing=TRUE)[1:15]
 ```
 
-Again, we'll want to try to clean up those results with our stoplist
+Again, we'll want to try to clean up those results with our stoplist:
 ```{r}
 top_collocates <- all_collocates[-which(all_collocates %in% stoplist)]
 
 sort(table(top_collocates), decreasing=TRUE)[1:25]
 ```
 
-This indicates that there are a few things that should be added to our stoplist. Easily done:
+This indicates that there are a few things that should be added to our stoplist. Easily done: just redefine stoplist as a vector that now contains all of stoplist plus two new elements, "a" and "s".
 ```{r}
 stoplist <- c(stoplist, "a", "s")
 ```
@@ -245,7 +266,7 @@ There are other ways to measure context and relationships between words as well,
 
 # Sentiment Analysis
 
-We're using the `tidyword` package, which provides a few datasets for this purpose. For starters, type `sentiments` into the console.
+We're using the `tidyword` package, which provides a few datasets for this purpose. For starters, type "sentiments" into the console.
 ```{r}
 sentiments
 ```
@@ -268,8 +289,7 @@ fear_df <- data.frame(fear_words) %>%
   summarize(total=n()) %>%
   arrange(desc(total))
 
-fear_df[1:10,] %>%
-  ggplot(aes(x=reorder(fear_words, total), y=total)) +
+ggplot(data=fear_df[1:10,], aes(x=reorder(fear_words, total), y=total)) +
   geom_bar(stat="identity") +
   coord_flip() +
   ggtitle("Most Frequent Fears in The Grandissimes") +
@@ -301,7 +321,7 @@ sentiment_plot %>%
   labs(x="Narrative Time, in Thousands of Words", y="Sentiment")
 ```
 
-Now this gives us a lot to chew over. In the case of *The Grandissimes*, we have a text that is unusually gloomy for an unusually large amount of the second half of the text; the resolution barely gets into positive territory, and only at the last minute.
+Now this gives us a lot to chew over. In the case of *The Grandissimes*, we have a text that is unusually gloomy for an unusually large amount of the second half of the text despite being generally chipper for the first half. The novel's resolution barely gets into positive territory, and only at the last minute. This makes *The Grandissimes* somewhat unusual, despite the fact that it does indeed possess love plots and resolution of conflict -- formal attributes that might lead one to mistakenly consider the novel simply another example of the postbellum historical romance.
 
 Of course, sentiment analysis is only as useful as the lexicon being used, and a lexicon that may be particularly useful for one text might not be for another text. To check this, we might want to do a bit of spot checking to see that sentiments are being assigned in a way that we deem appropriate. We might also want to compare different sentiment lexicons: for example, we could make a second version of this same graph that instead uses the "afinn" lexicon and compare the results. This kind of self-review is essential when working with quantitative methods.
 
@@ -319,4 +339,4 @@ Thanks for participating!
 
 
 
-[^1]:This workshop is of course influenced by Matthew Jockers' classic *Moby-Dick* workshop, one form of which can be found [on his website](http://www.matthewjockers.net/materials/dhwi-2013/dhwi-code/). It is also influenced by Julia Silge and David Robinson's [Text Mining with R](https://www.tidytextmining.com/index.html), which I recommend in particular for anyone looking for a more sustained introduction to quantitative textual analysis.
+[^1]:This workshop is of course influenced by Matthew Jockers' classic *Moby-Dick* workshop, one form of which can be found [on his website](http://www.matthewjockers.net/materials/dhwi-2013/dhwi-code/). It is also influenced by Julia Silge and David Robinson's [*Text Mining with R*](https://www.tidytextmining.com/index.html), which I recommend in particular for anyone looking for a more sustained introduction to quantitative textual analysis.
