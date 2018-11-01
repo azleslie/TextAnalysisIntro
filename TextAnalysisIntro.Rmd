@@ -96,7 +96,7 @@ text <- tolower(text)
 
 Next we'll split that one big character string into a big vector in which each word is its own separate element. By splitting our string (with `strsplit`) into its smallest units we'll be able to maximize our options for analysis.
 ```{r}
-words <- strsplit(lower, "\\W+")
+words <- strsplit(text, "\\W+")
 words <- unlist(words)
 ```
 
