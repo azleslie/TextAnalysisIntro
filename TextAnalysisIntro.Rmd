@@ -65,10 +65,19 @@ If you scroll up in the console, you'll see that the first twenty or so lines ar
 
 Find what you want to be the first line included in the text, and enter that where I've written "CHAPTER I". Then edit the next line of code so that it reflects the text you're working with. All Project Gutenberg texts end with a formula line that reads "End of Project Gutenberg's [title], by [author]", so you'll just want to double check to make sure you enter the title and author as they appear in the file.
 
-The `which` function will allow us to identify which elements of a vector exactly match whichever character string we're looking for. It returns the number of the position of the desired character string in the vector. For example:
+The `which` function will allow us to identify which elements of a vector exactly match whichever character string we're looking for.
 ```{r}
 which(gutenberg_file=="CHAPTER I")
 ```
+
+What is this number? It's the position in the gutenberg_file vector of the elements (in this case just one) containing the character string "CHAPTER I". 
+
+We can test this by *indexing* the gutenberg_file vector using brackets, `[]`, to select only the element(s) in the desired position(s). Indexing is one of the most useful and versitile tools in R, so you'll encounter it frequently today: it simply designates a subset of whichever object you're working with. For example:
+```{r}
+gutenberg_file[164]
+```
+
+The 164th element of gutenberg_file is indeed "CHAPTER I".
 
 We'll save this and the posiion of the desired end line as objects into memory.
 ```{r}
@@ -77,12 +86,12 @@ end <- which(gutenberg_file==
               "End of Project Gutenberg's The Grandissimes, by George Washington Cable")
 ```
 
-And now we'll *index* the gutenberg_file vector, using brackets `[ ]` so that we're only selecting the elements from the start position through (`:`) the end position minus one (since we don't want the "End of" line itself). Indexing is one of the most useful and versitile tools in R, so you'll encounter it frequently today: it simply designates a subset of whichever object you're working with. 
+You can index as many positions as you'd like. Next we'll index gutenberg_file so that we're only selecting the elements from the start position through (`:`) the end position minus one (since we don't want the "End of" line itself). 
 ```{r}
 text <- gutenberg_file[start:(end-1)]
 ```
 
-Give indexing a try: in the console, write the short line of code to return the first ten elements of our new text vector.
+Give indexing a try on your own: in the console, write the short line of code to return the first ten elements of our new text vector.
 
 As you can see, there's a bit more tidying to do. The lines format was useful for making those initial trims, but it's not really a subdivision that we're interested in (unlike, say, individual words or chapters). So let's paste all of those lines of characters together to make one big character string, separating each with a blank.
 ```{r}
@@ -186,30 +195,23 @@ Depending on the focus of analysis, one may wish to compare some of these attrib
 
 Let's focus on a single important word. You may choose an important character, concept, descriptor, one of the most frequently used words that stood out, anything. To demonstrate, I'll use the second half of the name Bras Coupé, an enslaved person in *The Grandissimes* whose curse on Louisiana's indigo plantations disrupts the novel. Finding the instances of a desired word is easy enough: just a simple `which` function.
 ```{r}
-which(word_vector=="coupé")
+keyword <- which(word_vector=="coupé")
 ```
 
-This returns a vector of numbers. What does this tell us? The position of each instance of our key word in the word_vector vector. This means that if we turn around and index those positions back into our word_vector, R will return a vector in which every element is our key word.
+How about a basic calculation: what percentage of the total number of words (i.e., the `length` of the word_vector) are the keyword just searched for? To do this we'll nest a few functions, so keep track of the parentheses. First we'll divide to come up with the proportion, then multiply by 100 to get a percentage. To make things look nice, we'll `round` that number to 4 digits and `paste` a percentage sign after, clarifying that we don't want anything (`""`) `sep`arating what's being pasted together.
 ```{r}
-word <- which(word_vector=="coupé")
-
-word_vector[word]
-```
-
-How about a basic calculation: what percentage of the total number of words (i.e., the `length` of the word_vector) are the word just searched for? To do this we'll nest a few functions, so keep track of the parentheses. First we'll divide to come up with the proportion, then multiply by 100 to get a percentage. To make things look nice, we'll `round` that number to 4 digits and `paste` a percentage sign after, clarifying that we don't want anything (`""`) `sep`arating what's being pasted together.
-```{r}
-paste(round(length(word) / length(word_vector) * 100, 4), "%", sep="")
+paste(round(length(keyword) / length(word_vector) * 100, 4), "%", sep="")
 ```
 
 Of course, words aren't used evenly throughout a text: they often follow patterns of use, and these patterns might be of importance. In a fictional text, we might call this narrative time, that is, the time it takes the narrative to unfold, as opposed to the time in which the plot unfolds. There are several potential ways we might measure narrative time - for example, our unit of measurement might be chapters. Given that we already know the total number of words and the position of any given word within that total, we'll use words as our unit of measurement instead.
 
-First we generate an x axis that is as long as there are words in our text. Then we make a y axis of the same length, where each value is 0 -- except for the positions of our key word, which we'll assign a value of 1. Finally, we save this as a data frame so that the two vectors match up with each other as two columns. That's all the prep necessary; the next lines of code generate the graph itself. They're pretty intuitive; see if you can read them yourself.
+First we generate an x axis that is as long as there are words in our text. Then we make a y axis of the same length, where each value is 0 -- except for the positions of our keyword, which we'll assign a value of 1. Finally, we save this as a data frame so that the two vectors match up with each other as two columns. That's all the prep necessary; the next lines of code generate the graph itself. They're pretty intuitive; see if you can read them yourself.
 
 (If you're using a different text, be sure to change the title by editing the `ggtitle` line of code before running.)
 ```{r}
 xaxis <- 1:length(word_vector)
 yaxis <- rep(0,length(xaxis))
-yaxis[word] <- 1
+yaxis[keyword] <- 1
 word_plot <- data.frame(xaxis, yaxis)
 
 ggplot(data=word_plot, aes(x=xaxis, y=yaxis)) +
@@ -221,25 +223,25 @@ ggplot(data=word_plot, aes(x=xaxis, y=yaxis)) +
   ggtitle("Mentions of Bras Coupe in Cable's The Grandissimes")
 ```
 
-Feel free to try out a few other words if you'd like; all it takes is re-defining the word object. See if you can recall how to do that on your own -- and if not, just scroll up two code blocks.
+Feel free to try out a few other words if you'd like; all it takes is re-defining the keyword object. See if you can recall how to do that on your own -- and if not, just scroll up two code blocks.
 
 It's often useful to know not just where a particular word occurs in the text but also what words appear immediately alongside it. We call these collocate words or collocates. 
 
-Let's take this step by step. How would we find the five collocates on either side of just the first instance of a key word? Since our word object in memory is simply a vector of positions, this is simply a matter subtraction and addition.
+Let's take this step by step. How would we find the five collocates on either side of just the first instance of our keyword? Since our keyword object in memory is simply a vector of positions, this is simply a matter subtraction and addition.
 ```{r}
-word <- which(word_vector=="eyes")
+keyword <- which(word_vector=="eyes")
 
-word_vector[(word[1]-5):(word[1]+5)]
+word_vector[(keyword[1]-5):(keyword[1]+5)]
 ```
 
-This returns a vector of the ten words surrounding our key word (plus our key word). Well enough! But we want to do this once for every element in word. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - word - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(word))`. The code being looped gets put inside curly brackets (`{ }`).
+This returns a vector of the ten words surrounding our key word (plus our key word). Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
 
-Instead of `word[1]`, we index the loop variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop variable once again.
+Instead of `keyword[1]`, we index the loop variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop variable once again.
 ```{r}
 collocates <- list()
 
-for (j in seq_along(word)) {
-  collocates[[j]] <- word_vector[(word[j]-5):(word[j]+5)]
+for (j in seq_along(keyword)) {
+  collocates[[j]] <- word_vector[(keyword[j]-5):(keyword[j]+5)]
 }
 ```
 
@@ -306,15 +308,15 @@ word_df <- data.frame(word=word_vector, word_position=seq_along(word_vector))
 text_positivity <- inner_join(word_df, get_sentiments("bing"), by="word")
 ```
 
-This next bit of code relies on a number of new functions, so don't worry if it just seems hazy. First we `count` the number of observations of each sentiment in each group of 1000 words in our original word_vector, which reorganizes the data frame so that each observation is now one group rather than one word. Then we `spread` . Finally, we `mutate` to add a new 
+This next bit of code relies on a number of new functions, so don't worry if it just seems hazy. First we `count` the number of observations of each sentiment in each group of 1000 words in our original word_vector, which reorganizes the data frame so that each observation is one sentiment from one group rather than one individual word. Then we `spread` the sentiment variable so that each of its two possible values, positive and negative, is its own variable whose value is the total number (`n`) of words associated with it in that 1000-word group. Finally, we `mutate` to add a new variable, sentiment_quant, which simply subtracts the difference between the value in the positive variable and the value in the negative variable.
 ```{r}
 sentiment_plot <- text_positivity %>%
   count(index = word_position %/% 1000, sentiment) %>%
   spread(sentiment, n, fill = 0) %>%
-  mutate(sentiment = positive - negative)
+  mutate(sentiment_quant = positive - negative)
 
 sentiment_plot %>%
-  ggplot(aes(x=index, y=sentiment)) +
+  ggplot(aes(x=index, y=sentiment_quant)) +
   geom_col() +
   ggtitle("Sentiment Progression in The Grandissimes") +
   theme(plot.title = element_text(face="bold", size=rel(1.5))) +
