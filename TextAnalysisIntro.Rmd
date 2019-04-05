@@ -193,7 +193,7 @@ Depending on the focus of analysis, one may wish to compare some of these attrib
 
 # Word Positions and Contexts
 
-Let's focus on a single important word. You may choose an important character, concept, descriptor, one of the most frequently used words that stood out, anything. To demonstrate, I'll use the second half of the name Bras Coupé, an enslaved person in *The Grandissimes* whose curse on Louisiana's indigo plantations disrupts the novel. Finding the instances of a desired word is easy enough: just a simple `which` function.
+Let's focus on a single important word. You may choose an important character, concept, descriptor, one of the most frequently used words that stood out, anything. To demonstrate, I'll use the second half of the name Bras Coupé, an enslaved person in *The Grandissimes* whose curse on Louisiana's indigo plantations disrupts the novel. Finding the instances of a desired word is easy enough: just a simple `which` function.[^2]
 ```{r}
 keyword <- which(word_vector=="coupé")
 ```
@@ -234,7 +234,7 @@ keyword <- which(word_vector=="eyes")
 word_vector[(keyword[1]-5):(keyword[1]+5)]
 ```
 
-This returns a vector of the ten words surrounding our key word (plus our key word).[] Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
+This returns a vector of the ten words surrounding our key word (plus our key word).[^3] Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
 
 Instead of `keyword[1]`, we index the loop variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop variable once again.
 ```{r}
@@ -299,7 +299,7 @@ ggplot(data=fear_df[1:10,], aes(x=reorder(fear_words, total), y=total)) +
   labs(x="Word", y="Total Uses")
 ```
 
-Now, this chart takes as its basis the entire text. But one might rather want to know how the sentiment of one part of a text or compare how it shifts from one part of the text to the next. There are several metrics by which one could do this: using the gutenberg_text object (it's still in our environment!) we could break the text into groups of words by chapter or even by paragraph.
+Now, this chart takes as its basis the entire text. But one might rather want to know how the sentiment of one part of a text or compare how it shifts from one part of the text to the next. There are several metrics by which one could do this: using the gutenberg_text object (it's still in our environment!) we could break the text into groups of words by sentence, paragraph, or even chapter.[^4]
 
 We'll begin by transforming our word_vector into a dataframe again, with two variables: one for the words and one for their place in the sequence of all words. This time, we'll use the "bing" lexicon to just track whether a word is positive or negative.
 ```{r, warning=FALSE}
@@ -329,9 +329,9 @@ Of course, sentiment analysis is only as useful as the lexicon being used, and a
 
 There's a bigger moral here too: that quantitative analysis should always be in dialogue with other qualitative forms of analysis. The benefits of quantitative analysis lie in its ability to articulate aspects of texts that can often be more precise or succinct than qualitative analysis and to direct our attention to further areas for qualitative analysis that we might've overlooked.
 
-Finally, we would really appreciate it if you took a minute to [fill out our brief feedback survey](https://rutgers.ca1.qualtrics.com/jfe/form/SV_a3itiZN18dY3fc9).
+Finally, we would really appreciate it if you took a minute to [fill out our brief feedback survey](http://bit.ly/2019_dh-feedback).
 
-If you'd like to look at this workshop in more detail or run the code yourself, visit https://github.com/azleslie/TextAnalysisIntro.
+If you'd like to look at this workshop in more detail or run the code yourself, visit https://github.com/azleslie/TextAnalysisIntro. If you want to try it out on a different text, simply save that text as a .txt file and save it into the sample_texts directory.
 
 Thanks for participating!
 
@@ -343,4 +343,15 @@ Thanks for participating!
 
 [^1]:This workshop is of course influenced by Matthew Jockers' classic *Moby-Dick* workshop, one form of which can be found [on his website](http://www.matthewjockers.net/materials/dhwi-2013/dhwi-code/). It is also influenced by Julia Silge and David Robinson's [*Text Mining with R*](https://www.tidytextmining.com/index.html), which I recommend in particular for anyone looking for a more sustained introduction to quantitative textual analysis.
 
-[^2]:The words here seem a bit difficult to parse, but this is simply because we lack the punctuation to immediately make sense of Cable's syntax: "The dance goes on; hearts are beating, wit is flashing, eyes encounter eyes with the leveled lances of their beams, merriment and joy and sudden bright surprises thrill the breast, voices are throwing off disguise, and beauty's coy ear is bending with a venturesome docility; here love is baffled, there deceived, yonder takes prisoners and here surrenders."
+[^2]:If this code doesn't execute properly, check to make sure that the name here is spelled c-o-u-p-[e with an accent]; older computers/software sometimes corrupt this last character.
+
+[^3]:The words here seem a bit difficult to parse, but this is simply because we lack the punctuation to immediately make sense of Cable's syntax: "The dance goes on; hearts are beating, wit is flashing, eyes encounter eyes with the leveled lances of their beams, merriment and joy and sudden bright surprises thrill the breast, voices are throwing off disguise, and beauty's coy ear is bending with a venturesome docility; here love is baffled, there deceived, yonder takes prisoners and here surrenders."
+
+[^4]:Recall our initial decision to split up the text into words - that is, by non-letter characters - looked like this:
+    ```{r, eval=FALSE}
+    unlist(strsplit(text, "\\W+"))
+    ```
+    If we wanted to instead split up the text into sentences - that is, by sentence-ending punctuation - we would write something like this, using vertical lines (`|`) to designate a split at either a literal period, question mark, or exclamation mark:
+    ```{r, eval=FALSE}
+    sentences <- unlist(strsplit(text, "\\.|\\?|\\!"))
+    ```
