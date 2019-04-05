@@ -135,7 +135,7 @@ sorted_words <- sort(table(word_vector), decreasing=TRUE)
 sorted_words[1:20]
 ```
 
-Unsurprisingly, the most commonly used words in most texts are, well, a bit boring. Let's try indexing only the strings in collocoates `which` contain a number of characters (`nchar`) greater than three.
+Unsurprisingly, the most commonly used words in most texts are, well, a bit boring. Let's try indexing only the strings in word_vector `which` contain a number of characters (`nchar`) greater than three.
 ```{r}
 top_words <- word_vector[which(nchar(word_vector) > 3)]
 sort(table(top_words), decreasing=TRUE)[1:20]
@@ -171,11 +171,11 @@ There are a number of other dimensions of a text that can be quantified based on
 ```{r}
 sorted_words["he"]
 sorted_words["she"]
-sorted_words["him"]
+sorted_words["his"]
 sorted_words["her"]
 ```
 
-In the case of *The Grandissimes*, the masculine first person pronoun is clearly used more than the feminine first person pronoun, but this flips when it comes to possessive pronouns. This is often the case in a novel with romance plots whose central protagonists are predominantly men. We might explore this further by finding all the words that come after "her," for example, to find out what this possessive pronoun most often possesses. 
+In the case of *The Grandissimes*, the masculine first person pronoun is clearly used more than the feminine first person pronoun, but the gap is closed when it comes to possessive pronouns. This is often the case in a novel with romance plots whose central protagonists are predominantly men. We might explore this further by finding all the words that come after "her," for example, to find out what this possessive pronoun most often possesses (ex., is the novel more interested in "her eyes" or "her resolve"?). 
 
 What about tense? English verbs aren't differentiated quite as reliably by suffix as verbs in other languages, but we can at least get a sense based on usage of basic "to be" conjugations.
 ```{r}
@@ -234,7 +234,7 @@ keyword <- which(word_vector=="eyes")
 word_vector[(keyword[1]-5):(keyword[1]+5)]
 ```
 
-This returns a vector of the ten words surrounding our key word (plus our key word). Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
+This returns a vector of the ten words surrounding our key word (plus our key word).[] Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
 
 Instead of `keyword[1]`, we index the loop variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop variable once again.
 ```{r}
@@ -342,3 +342,5 @@ Thanks for participating!
 
 
 [^1]:This workshop is of course influenced by Matthew Jockers' classic *Moby-Dick* workshop, one form of which can be found [on his website](http://www.matthewjockers.net/materials/dhwi-2013/dhwi-code/). It is also influenced by Julia Silge and David Robinson's [*Text Mining with R*](https://www.tidytextmining.com/index.html), which I recommend in particular for anyone looking for a more sustained introduction to quantitative textual analysis.
+
+[^2]:The words here seem a bit difficult to parse, but this is simply because we lack the punctuation to immediately make sense of Cable's syntax: "The dance goes on; hearts are beating, wit is flashing, eyes encounter eyes with the leveled lances of their beams, merriment and joy and sudden bright surprises thrill the breast, voices are throwing off disguise, and beauty's coy ear is bending with a venturesome docility; here love is baffled, there deceived, yonder takes prisoners and here surrenders."
