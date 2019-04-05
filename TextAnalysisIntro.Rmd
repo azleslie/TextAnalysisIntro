@@ -349,7 +349,7 @@ Thanks for participating!
 
 [^4]:Recall our initial decision to split up the text into words - that is, by non-letter characters - looked like this:
     ```{r, eval=FALSE}
-    unlist(strsplit(text, "\\W+"))
+    words <- unlist(strsplit(text, "\\W+"))
     ```
     If we wanted to instead split up the text into sentences - that is, by sentence-ending punctuation - we would write something like this, using vertical lines (`|`) to designate a split at either a literal period, question mark, or exclamation mark:
     ```{r, eval=FALSE}
