@@ -51,13 +51,12 @@ Don't panic: you're in RStudio Cloud, an environment that makes coding in R more
 
 Programming languages like R distinguish between several data types; these include numeric (e.g. 1, 2, 3), boolean (e.g. TRUE, FALSE), and character (e.g. "n", "s", "v"). Quantitative textual analysis is primarily concerned with characters, but we'll sometimes rely on the others in the process of working with characters. A string of characters (e.g. "string", "characters") are called a character string. 
 
-First, we need to read in our data into our environment. We'll do that by using a function, `readLines`, to read in a .txt file and assign that data (using `<-`) to an object with whatever name we'd like ("gutenberg_file").
-
+First, we need to read in our data into our environment. We'll do that by using a function, `readLines`, to read in a .txt file and assign that data (using `<-`) to an object with whatever name we'd like ("gutenberg_file"). Since we're passing two parameters to `readLines` - the file path to the .txt file and the desired character encoding - we need to separate them with a comma (`,`). These notations constitute the most basic grammar of R.
 ```{r, warning=FALSE}
 gutenberg_file <- readLines("sample_texts/grandissimes.txt", encoding = "UTF-8")
 ```
 
-Type "gutenberg_file" into the console and click enter in order to see what this object actually looks like. You'll note we have a series of lines, each enclosed in quotation marks and each with a number on the left. Each of these lines is called a character string; together, they form what we call a vector.
+Type "gutenberg_file" into the console and click enter in order to see what this object actually looks like. You'll note we have a series of lines, each enclosed in quotation marks and each with a number on the left. Each of these lines is called a *character string*; together, they form what we call a *vector*.
 
 If you scroll up in the console, you'll see that the first twenty or so lines are all Gutenberg Project data and the next chunk of lines are metadata from the book itself (copyright, title page, table of contents, etc). Let's get rid of this extra stuff so that we're working just with the body of the text.
 
@@ -93,7 +92,7 @@ text <- gutenberg_file[start:(end-1)]
 
 Give indexing a try on your own: in the console, write the short line of code to return the first ten elements of our new text vector.
 
-As you can see, there's a bit more tidying to do. The lines format was useful for making those initial trims, but it's not really a subdivision that we're interested in (unlike, say, individual words or chapters). So let's paste all of those lines of characters together to make one big character string, separating each with a blank.
+As you can see, there's a bit more tidying to do. The lines format was useful for making those initial trims, but it's not really a subdivision that we're interested in (unlike, say, individual words or chapters). So let's paste all of those lines of characters together to make one big character string, separating each with a blank. This will effectively remove the blank line null characters `""`.
 ```{r}
 text <- paste(text, collapse=" ")
 ```
@@ -103,27 +102,22 @@ Given that many searches are case-sensitive by default, it's easier to work with
 text <- tolower(text)
 ```
 
-Next we'll split that one big character string into a big vector in which each word is its own separate element. By splitting our string (with `strsplit`) into its smallest units we'll be able to maximize our options for analysis.
+Next we'll split that one big character string into a big vector in which each word is its own separate element. By splitting our string (with `strsplit`) into its smallest units we'll be able to maximize our options for analysis. The second parameter in `strsplit` is what's called a regular expression: a metacharacter that, in this case, refers to any non-word characters.
 ```{r}
-words <- strsplit(text, "\\W+")
-words <- unlist(words)
-```
-
-If you click on the blue arrow by the words object in the environment, you'll notice that some of the elements it contains are just the null character `""`. These are what's left of punctuation and line breaks; they can be removed by subsetting or indexing only `which` elements of words are not equal (`!=`) to `""`.
-```{r}
-word_vector <- words[which(words!="")]
+word_vector <- strsplit(text, "\\W+")
+word_vector <- unlist(word_vector)
 ```
 
 The result should be a vector of character strings, one for each word in our text. With this we can begin some analysis.
 
 # Text Composition and Word Usage
 
-How many unique words are there in *The Grandissimes*? In other words, what is the `length` of the vector of `unique` elements in word_vector? We'll wrap the first function we want R to carry out, `unique`, in the second, `length`. This is called nesting.
+How many unique words are there in *The Grandissimes*? In other words, what is the `length` of the vector of `unique` elements in word_vector? We'll wrap the first function we want R to carry out, `unique`, in the second, `length`. This is called nesting functions.
 ```{r}
 length(unique(word_vector))
 ```
 
-How many times is each word in the text used? The handy `table` function will automatically tally this up. Since there are a lot of words, we'll index only the first twenty elements of the resulting table.
+How many times is each word in the text used? The handy `table` function will automatically tally this up. Since there are a lot of words, we'll index only the first twenty elements of the resulting table.[^2]
 ```{r}
 table(word_vector)[1:20]
 ```
@@ -141,10 +135,10 @@ top_words <- word_vector[which(nchar(word_vector) > 3)]
 sort(table(top_words), decreasing=TRUE)[1:20]
 ```
 
-That helped, but there's still a fair bit of static here. This time, we'll use a stop list - a list of common words that we don't want gumming up the works - to cull a bit more (there are plenty of stoplists lying about online; I've pulled mine from the Princeton CS website). Then we'll index to exclude (with the negative operator `-`) all of the elements of top_words that are also elements `%in%` the stoplist.
+That helped, but there's still a fair bit of static here. This time, we'll use a stop list - a list of common words that we don't want gumming up the works - to cull a bit more (there are plenty of stoplists lying about online; I've pulled mine from the Princeton CS website). Then we'll index top_words to exclude (with the negative operator `!`) all of the elements of top_words that are also elements `%in%` the stoplist.
 ```{r}
 stoplist <- readLines("https://algs4.cs.princeton.edu/35applications/stopwords.txt")
-top_words <- top_words[-which(top_words %in% stoplist)]
+top_words <- top_words[! top_words %in% stoplist]
 
 sort(table(top_words), decreasing=TRUE)[1:30]
 ```
@@ -153,15 +147,23 @@ Much nicer: this has eliminated some real words, yes, but it has also made the r
 
 This information can be visualized as a word cloud as well.
 
-To do so, we'll need to save top_words as a data.frame instead. A data frame is another data type in R: it is basically the equivalent of a spreadsheet in that it contains observations (or rows) and variables (or columns). Next, we'll use the piping operator `%>%`, which pipes the output of one function directly into the next, making our code clearer and more concise. Think of it like pouring our data through a series of sifters with increasingly smaller withes. This allows us to take our new word data frame, `group_by` word and `summarize` the number of observations in each group as a new variable called total. Finally, we'll generate the wordcloud itself.
+To do so, we'll need to save top_words as a `data.frame` instead. A *data frame* is another data type in R: it is basically the equivalent of a spreadsheet in that it contains observations (or rows) and variables (or columns). Our data frame, word_df, simply consists of a single variable or column made out of top_words, which I've called word. 
 ```{r}
 word_df <- data.frame(word=top_words)
+```
 
-word_totals <- word_df %>% 
+Next, we'll use the piping operator `%>%`, which simply funnels the results of one function directly into the next, making our code clearer and more concise. This allows us to take our new word_df data frame, `group_by` word, and `summarize` the number of observations in each group (i.e., the number of occurences for each word) as a new variable called total. 
+```{r}
+word_df <- word_df %>% 
   group_by(word) %>% 
   summarize(total=n())
+```
 
-wordcloud(word_totals$word, word_totals$total, 
+To see what this actually looks like, click on word_df in the environment; this will launch a data viewer window in the script editor. (When you're done looking you can either close this window or click back to the workshop tab.)
+
+Finally, we'll generate the wordcloud itself. The second line of parameters is all unique to the `wordcloud` function. If you look at the first line of parameters, though, you'll see that the `$` operator allows us to refer to just one variable or column of a data frame.
+```{r}
+wordcloud(word_df$word, word_df$total, 
           min.freq=5, max.words = 100, random.order=FALSE, rot.per=.35)
 ```
 
@@ -193,7 +195,7 @@ Depending on the focus of analysis, one may wish to compare some of these attrib
 
 # Word Positions and Contexts
 
-Let's focus on a single important word. You may choose an important character, concept, descriptor, one of the most frequently used words that stood out, anything. To demonstrate, I'll use the second half of the name Bras Coupé, an enslaved person in *The Grandissimes* whose curse on Louisiana's indigo plantations disrupts the novel. Finding the instances of a desired word is easy enough: just a simple `which` function.[^2]
+Let's focus on a single important word. You may choose an important character, concept, descriptor, one of the most frequently used words that stood out, anything. To demonstrate, I'll use the second half of the name Bras Coupé, an enslaved person in *The Grandissimes* whose curse on Louisiana's indigo plantations disrupts the novel. Finding the instances of a desired word is easy enough: just a simple `which` function.[^3]
 ```{r}
 keyword <- which(word_vector=="coupé")
 ```
@@ -234,9 +236,9 @@ keyword <- which(word_vector=="eyes")
 word_vector[(keyword[1]-5):(keyword[1]+5)]
 ```
 
-This returns a vector of the ten words surrounding our key word (plus our key word).[^3] Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` loop. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
+This returns a vector of the ten words surrounding our key word (plus our key word).[^4] Well enough! But we want to do this once for every element in keyword. In order to do this, we'll have to use a `for` *loop*. A `for` loop executes a section of code once `for` every element in a vector. We know our vector - keyword - so we'll declare what's called a *loop control variable* with the syntax `(j in seq_along(keyword))`. The code being looped gets put inside curly brackets (`{ }`).
 
-Instead of `keyword[1]`, we index the loop variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop variable once again.
+Instead of `keyword[1]`, we index the loop control variable `j`. The first time the loop runs `j` will be 1; the second time it'll be 2; and so on. But wait: how do we save our results? We know that the first line of code in the loop will produce a vector for each instance of our key word. How do we save a bunch of vectors? With a new data type: a list. A list is basically a vector of vectors. So before running the loop it's necessary to declare an empty list to store our results in. Double brackets are used to index a whole vector into a list. Since we want the results of the loop's first run to be first, those of its second run to be second, and so on, we need to index with the loop control variable once again.
 ```{r}
 collocates <- list()
 
@@ -259,7 +261,7 @@ top_collocates <- all_collocates[-which(all_collocates %in% stoplist)]
 sort(table(top_collocates), decreasing=TRUE)[1:25]
 ```
 
-This indicates that there are a few things that should be added to our stoplist. Easily done: just redefine stoplist as a vector that now contains all of stoplist plus two new elements, "a" and "s".
+This indicates that there are a few things that should be added to our stoplist. Easily done: just redefine stoplist as a vector that now contains all of stoplist plus two new elements, "a" and "s".[^5]
 ```{r}
 stoplist <- c(stoplist, "a", "s")
 ```
@@ -299,7 +301,7 @@ ggplot(data=fear_df[1:10,], aes(x=reorder(fear_words, total), y=total)) +
   labs(x="Word", y="Total Uses")
 ```
 
-Now, this chart takes as its basis the entire text. But one might rather want to know how the sentiment of one part of a text or compare how it shifts from one part of the text to the next. There are several metrics by which one could do this: using the gutenberg_text object (it's still in our environment!) we could break the text into groups of words by sentence, paragraph, or even chapter.[^4]
+Now, this chart takes as its basis the entire text. But one might rather want to know the sentiment of one part of a text or compare how it shifts from one part of the text to the next. There are several metrics by which one could do this: using the gutenberg_text object (it's still in our environment!) we could break the text into groups of words by sentence, paragraph, or even chapter.[^6]
 
 We'll begin by transforming our word_vector into a dataframe again, with two variables: one for the words and one for their place in the sequence of all words. This time, we'll use the "bing" lexicon to just track whether a word is positive or negative.
 ```{r, warning=FALSE}
@@ -343,11 +345,26 @@ Thanks for participating!
 
 [^1]:This workshop is of course influenced by Matthew Jockers' classic *Moby-Dick* workshop, one form of which can be found [on his website](http://www.matthewjockers.net/materials/dhwi-2013/dhwi-code/). It is also influenced by Julia Silge and David Robinson's [*Text Mining with R*](https://www.tidytextmining.com/index.html), which I recommend in particular for anyone looking for a more sustained introduction to quantitative textual analysis.
 
-[^2]:If this code doesn't execute properly, check to make sure that the name here is spelled c-o-u-p-[e with an accent]; older computers/software sometimes corrupt this last character.
+[^2]:What are all those underscores doing? This is the way that this particular transcription of *The Grandissimes* marks dialect speech or phrases. For this reason we may wish to keep them - if we were looking at dialect in the novel, say. But we might prefer them removed. The `gsub` function will substitute whatever character pattern we want to replace with whatever character pattern we want to replace it with:
+    ```{r, eval=FALSE}
+    word_vector <- gsub("_", "", word_vector)
+    ```
+    This solves the issue for most words, but all elements that were nothing but an underscore will now be a null character, `""`. So we'll also need to index all elements of word_vector `which` are not (`!=`) null characters:
+    ```{r, eval=FALSE}
+    word_vector <- word_vector[which(word_vector!="")]
+    ```
 
-[^3]:The words here seem a bit difficult to parse, but this is simply because we lack the punctuation to immediately make sense of Cable's syntax: "The dance goes on; hearts are beating, wit is flashing, eyes encounter eyes with the leveled lances of their beams, merriment and joy and sudden bright surprises thrill the breast, voices are throwing off disguise, and beauty's coy ear is bending with a venturesome docility; here love is baffled, there deceived, yonder takes prisoners and here surrenders."
+[^3]:If this code doesn't execute properly, check to make sure that the name here is spelled c-o-u-p-[e with an accent]; older computers/software sometimes corrupt this last character.
 
-[^4]:Recall our initial decision to split up the text into words - that is, by non-letter characters - looked like this:
+[^4]:The words here seem a bit difficult to parse, but this is simply because we lack the punctuation to immediately make sense of Cable's syntax: "The dance goes on; hearts are beating, wit is flashing, eyes encounter eyes with the leveled lances of their beams, merriment and joy and sudden bright surprises thrill the breast, voices are throwing off disguise, and beauty's coy ear is bending with a venturesome docility; here love is baffled, there deceived, yonder takes prisoners and here surrenders."
+
+[^5]:What if we came to regret a particular addition to our stoplist and wanted to remove it? The surest way is to first make a vector of the character strings you wish to remove and then index stoplist to exclude (`!`) all elements of stoplist that are also `%in%` the remove words vector.
+    ```{r, eval=FALSE}
+    remove_words <- c("a", "s")
+    stoplist <- stoplist[! stoplist %in% remove_words]
+    ```
+
+[^6]:Recall our initial decision to split up the text into words - that is, by non-letter characters - looked like this:
     ```{r, eval=FALSE}
     words <- unlist(strsplit(text, "\\W+"))
     ```
