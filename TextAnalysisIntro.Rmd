@@ -15,6 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 if (!(require(dplyr))) {
   install.packages("dplyr")
 }
+if (!(require(tidyr))) {
+  install.packages("tidyr")
+}
 if (!(require(stringr))) {
   install.packages("stringr")
 }
@@ -24,6 +27,9 @@ if (!(require(ggplot2))) {
 if (!(require(tidytext))) {
   install.packages("tidytext")
 }
+if (!(require(textdata))) {
+  install.packages("textdata")
+}
 if (!(require(wordcloud))) {
   install.packages("wordcloud")
 }
@@ -31,9 +37,11 @@ if (!(require(tm))) {
   install.packages("tm")
 }
 library("dplyr")
+library("tidyr")
 library("stringr")
 library("ggplot2")
 library("tidytext")
+library("textdata")
 library("wordcloud")
 library("tm")
 ```
@@ -255,7 +263,7 @@ sort(table(all_collocates), decreasing=TRUE)[1:15]
 
 Again, we'll want to try to clean up those results with our stoplist:
 ```{r}
-top_collocates <- all_collocates[-which(all_collocates %in% stoplist)]
+top_collocates <- all_collocates[!(all_collocates %in% stoplist)]
 
 sort(table(top_collocates), decreasing=TRUE)[1:25]
 ```
@@ -269,12 +277,12 @@ There are other ways to measure context and relationships between words as well,
 
 # Sentiment Analysis
 
-We're using the `tidyword` package, which provides a few datasets for this purpose. For starters, type "sentiments" into the console.
+We're using the `tidytext` and `textdata` packages, which provide a few datasets for this purpose. For starters, type `get_sentiments(nrc)` into the console. (R will ask if you want to download this; type "1" and Enter to agree.)
 ```{r}
-sentiments
+get_sentiments("nrc")
 ```
 
-Each observation - or row - here corresponds to a single word, as we can see from the word variable - or column - on the left. Next, note the third variable, lexicon. The sentiments dataset actually contains three different sentiment lexicons. The first, "nrc," associates words with a particular affect or emotion; as you can see in the sentiment variable, a word can be associated with multiple sentiments in the "nrc" lexicon. The "bing" lexicon, by contrast, assigns each word either "positive" or "negative" sentiment. Finally, the "afinn" lexicon scores each word between -5 and 5.
+Each observation - or row - here corresponds to a single word, as we can see from the word variable - or column - on the left. We have access to three sentiment lexicons. The first, "nrc," associates words with a particular affect or emotion; as you can see in the sentiment variable, a word can be associated with multiple sentiments in the "nrc" lexicon. The "bing" lexicon, by contrast, assigns each word either "positive" or "negative" sentiment. Finally, the "afinn" lexicon scores each word between -5 and 5.
 
 Using the "nrc" lexicon, we can identify all the words in our text that are associated with a particular sentiment. I've chosen fear, but you can pick whichever sentiment you'd like: if you do, make sure to change all the instances of the word "fear" in the next couple blocks of code (you can use ctrl+f to find them).
 ```{r}
