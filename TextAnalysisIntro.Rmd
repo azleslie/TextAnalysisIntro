@@ -1,7 +1,7 @@
 ---
 title: "Intro to Quantitative Textual Analysis"
 author: "[Alex Leslie](https://english.rutgers.edu/cb-profile/ahl80.html)"
-date: "4/4/2019"
+date: "2/7/2020"
 output:
   pdf_document:
     toc: TRUE
@@ -85,7 +85,7 @@ gutenberg_file[164]
 
 The 164th element of gutenberg_file is indeed "CHAPTER I".
 
-We'll save this and the posiion of the desired end line as objects into memory.
+We'll save this and the position of the desired end line as objects into memory.
 ```{r}
 start <- which(gutenberg_file=="CHAPTER I")
 end <- which(gutenberg_file==
